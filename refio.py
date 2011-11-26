@@ -36,7 +36,7 @@ def download_file(file_link, file_name):
 
 
 def main(htm_file_name, org_file_name, 
-         dl='T', open_reader='T', parser='arxiv'):
+         dl='T', open_reader='T'):
 
     cur_dir = refconf.dir_prefix
     pdf_dir = cur_dir + 'pdf/'
@@ -47,18 +47,20 @@ def main(htm_file_name, org_file_name,
     htmfile = open(htm_file_name)
     htm_string = htmfile.read()
 
-    if parser == 'arxiv':
-        logfile.write("Starting arXiv parser ... \n")
-        paper_data = arxiv_parser.get_data(htm_string)
-    elif parser == 'inspire':
-        logfile.write("Starting inspire parser ... \n")
-        paper_data = inspire_parser.get_data(htm_string)
-    else:
-        logfile.write("Error: parser '" + parser + "' is not recognized \n")
-        logfile.write("Abort. \n")
-        return
+    # try arxiv parser:
+    logfile.write("Try arXiv parser ... \n")
+    paper_data = arxiv_parser.get_data(htm_string)
 
-    if paper_data['status'] != 'success':
+    # try inspire parser:
+    if paper_data['status'] == 'success':
+        logfile.write("ArXiv parser returned successfully. \n")
+    else:
+        logfile.write("Try inspire parser ... \n")
+        paper_data = inspire_parser.get_data(htm_string)
+
+    if paper_data['status'] == 'success':
+        logfile.write("Inspire parser returned successfully. \n")
+    else:        
         logfile.write("Error: " + paper_data['status'] + "\n")
         logfile.write("Abort. \n")
         return

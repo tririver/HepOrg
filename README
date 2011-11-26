@@ -8,7 +8,7 @@
 
 
 
-* INSTALL (only tested on linux):
+* INSTALL (only tested on Linux):
 
 ** Download the package (preferably using git as follows:)
 
@@ -19,9 +19,9 @@
 
 * Usage:
 
-** Heporg is recommended to be used together with a firefox addon
+** Heporg is recommended to be used together with a Firefox addon
    "viewsourcewith", use settings -> new, enter editor path as
-   (path to the package)/arxiv_toread.py
+   (path to the package)/toread.py
 
 ** Then at the arxiv abstract page (http://arxiv.org/abs/xxxx.xxxx)
    click the viewsourcewith icon. This click will
@@ -34,7 +34,7 @@
 
 ** Alternatively (without viewsourcewith), 
    one can save the source of the webpage, 
-   and in a terminal type ./arxiv_toread.py file.htm to do the same thing.
+   and in a terminal type ./toread.py file.htm to do the same thing.
 
 ** Part of the code can be used as parsers of arxiv.org and inspirehep.net,
    to generate other types of outputs
@@ -43,7 +43,7 @@
 
 * Mechanism:
 
-** [arxiv, inspire]_[toread, classic, useful].py are simple scripts
+** [toread, classic, useful].py are simple scripts
    easily callable by "viewsourcewith"
 
 ** [arxiv, inspire]_parser.py are parsers for the htm file.
