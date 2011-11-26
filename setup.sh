@@ -25,5 +25,5 @@ echo "In emacs org-mode, you can use tab key to fold / unfold details"
 echo ""
 echo "If there is a problem, have a look at refconf.py"
 echo "Or report bug to tririverwangyi@gmail.com"
-./arxiv_classic.py test_arxiv.htm
+./heporg.py test_arxiv.htm
 

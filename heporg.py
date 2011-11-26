@@ -1,3 +1,5 @@
+#! /usr/bin/python
+
 # Copyright (C) 2011 by Yi Wang
 # tririverwangyi@gmail.com
 #
@@ -19,12 +21,37 @@
 
 import subprocess
 import urllib.request
-
+import sys
 
 import refconf
 import arxiv_parser
 import inspire_parser
 import org_fmt
+
+
+
+def print_usage():
+    usage = '''
+Usage:
+
+(a) heporg.py html_file_name
+
+use html_file_name as input, the default tag is toread (thus generate default record file toread.org).
+
+(b) heporg.py tag_name html_file_name
+
+use html_file_name as input, and generate record file tag_name.org
+'''
+    print(usage)
+
+
+
+def msg(logfile, message, quiet='F'):
+    logfile.write(message + "\n")
+    if quiet == 'F':
+        print(message)
+    return
+
 
 
 def download_file(file_link, file_name):
@@ -33,6 +60,7 @@ def download_file(file_link, file_name):
     localFile.write(f.read())
     localFile.close()
     return
+
 
 
 def main(htm_file_name, org_file_name, 
@@ -44,26 +72,28 @@ def main(htm_file_name, org_file_name,
 
     logfile = open(cur_dir+'events.log', 'w') # 'a' for appending
     orgfile = open(org_dir+org_file_name, 'a')
-    htmfile = open(htm_file_name)
+    try:
+        htmfile = open(htm_file_name)
+    except IOError:
+        msg(logfile, "Input file " + htm_file_name + " not found. Abort.")
+        sys.exit(1)
     htm_string = htmfile.read()
 
     # try arxiv parser:
-    logfile.write("Try arXiv parser ... \n")
+    msg(logfile,"Try arXiv parser ...")
     paper_data = arxiv_parser.get_data(htm_string)
 
     # try inspire parser:
-    if paper_data['status'] == 'success':
-        logfile.write("ArXiv parser returned successfully. \n")
-    else:
-        logfile.write("Try inspire parser ... \n")
+    if paper_data['status'] != 'success':
+        msg(logfile,"Try inspire parser ...")
         paper_data = inspire_parser.get_data(htm_string)
 
     if paper_data['status'] == 'success':
-        logfile.write("Inspire parser returned successfully. \n")
-    else:        
-        logfile.write("Error: " + paper_data['status'] + "\n")
-        logfile.write("Abort. \n")
-        return
+        msg(logfile,"File parsed successfully")
+    else:
+        msg(logfile,"Error: " + paper_data['status'])
+        msg(logfile,"Abort")
+        sys.exit(1)
         
 
     pdf_fn = org_fmt.file_name(paper_data)
@@ -73,30 +103,48 @@ def main(htm_file_name, org_file_name,
         local_pdf_name = ''
 
     
-    logfile.write("Writing to" + org_dir + org_file_name + "\n")
+    msg(logfile,"Writing to" + org_dir + org_file_name)
     orgfile.write(org_fmt.output(paper_data, local_pdf_name))
 
 
     if local_pdf_name == '':
-        logfile.write("No pdf_link, thus no file to download or open\nDone.\n")
+        msg(logfile,"No pdf_link, thus no file to download or open\nDone.")
         return
 
 
     if dl == 'T':
-        logfile.write("Downloading " + local_pdf_name + "\n")
+        msg(logfile,"Downloading " + local_pdf_name)
         download_file(paper_data['pdf_link'], local_pdf_name)
 
 
     if open_reader == 'T':
-        logfile.write("Starting reader: '" + refconf.pdf_reader + "'\n")
+        msg(logfile,"Starting reader: " + refconf.pdf_reader)
         if refconf.pdf_reader_arg =='':
             subprocess.call([refconf.pdf_reader, local_pdf_name])
         else:
             subprocess.call([refconf.pdf_reader, 
                              refconf.pdf_reader_arg, local_pdf_name])
         
-    logfile.write("Done.\n")
+    msg(logfile,"Done.")
 
     logfile.close()
     orgfile.close()
     htmfile.close()
+
+
+
+# main starts here
+
+# examine passing-in parameter:
+
+if len(sys.argv)==1:
+    print_usage()
+    sys.exit(1)
+elif len(sys.argv)==2:
+    org_file_name = 'toread.org'
+    htm_file_name = sys.argv[1]
+elif len(sys.argv)==3:
+    org_file_name = sys.argv[1] + '.org'
+    htm_file_name = sys.argv[2]
+    
+main(htm_file_name, org_file_name)
