@@ -55,7 +55,7 @@
 
 ** heporg.py is the main program.
 
-** [arxiv, inspire]_parser.py are parsers for the htm file.
+** parsers.py are parsers for the htm file.
 
 ** org_fmt.py format the .org file
 

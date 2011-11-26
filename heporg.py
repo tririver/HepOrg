@@ -159,7 +159,7 @@ elif len(sys.argv)==3:
     org_file_name = sys.argv[1] + '.org'
     htm_file_name = sys.argv[2]
     
-main(htm_file_name, org_file_name, notify=refconf.notify, dl='F')
+main(htm_file_name, org_file_name, notify=refconf.notify, dl='T')
 
 if refconf.notify !='F':
     subprocess.call(["notify-send", "--hint=int:transient:1",

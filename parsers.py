@@ -125,19 +125,11 @@ def inspire(page):
     if authors == 'not found':
         return {'status':'try-inspire failed -- authors not found'}
 
-
-
-
     return {'arxiv_num':arxiv_num, 'title':title, 
-            'authors':authors, 
-            'abstract':abstract, 
-            'abs_link':abs_link,
-            'pdf_link':pdf_link, 
-            'version':'?',
-            'submit_date':submit_date, 
-            'ver_date':ver_date,
-            'journal':journal,
-            'inspire_link':inspire_link,
+            'authors':authors, 'abstract':abstract, 'abs_link':abs_link,
+            'pdf_link':pdf_link, 'version':'?',
+            'submit_date':submit_date, 'ver_date':ver_date,
+            'journal':journal,'inspire_link':inspire_link,
             'status':'success'}
 
 
