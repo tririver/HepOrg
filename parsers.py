@@ -35,154 +35,97 @@ def get(re_str, page, re_option=0, fmt=''):
         
         
 
-def arxiv(arxiv_page):
-
-    arxiv_num = get(r'<title>\[(.+?)] .+?</title>', 
-                      arxiv_page, re_option=re.DOTALL)
+def arxiv(page):
 
     title = get(r'<title>\[.+?] (.+?)</title>', 
-                      arxiv_page, re_option=re.DOTALL)
+                      page, re_option=re.DOTALL)
+    if title == 'not found':
+        return {'status':'try-arxiv failed -- title not found'}
+
+    arxiv_num = get(r'<title>\[(.+?)] .+?</title>', 
+                      page, re_option=re.DOTALL)
 
     abstract = get(r'<blockquote class="abstract">\n<span class="descriptor">Abstract:</span> (.+)\n</blockquote>', 
-                      arxiv_page, re_option=re.DOTALL)    
+                      page, re_option=re.DOTALL)    
+    if abstract == 'not found':
+        return {'status':'try-arxiv failed -- abstract not found'}
 
-    abs_link = get(r'dc:identifier="(.+?)"', arxiv_page)
+    abs_link = get(r'dc:identifier="(.+?)"', page)
 
-    pdf_link = get(r'citation_pdf_url" content="(.+?)" />', arxiv_page)
+    pdf_link = get(r'citation_pdf_url" content="(.+?)" />', page)
+    if pdf_link == 'not found':
+        return {'status':'try-arxiv failed -- pdf_link not found'}
 
-    version = get(r'<b>\[v(.+?)]</b>', arxiv_page)
+    version = get(r'<b>\[v(.+?)]</b>', page)
 
-    journal = get(r'td class="tablecell jref">(.+?)</td>', arxiv_page)
+    journal = get(r'td class="tablecell jref">(.+?)</td>', page)
 
     inspire_link = get('Citations</h3><ul><li><a href="(.+?)">INSPIRE',
-                       arxiv_page)
+                       page)
 
+    authors = get(r'<meta name="citation_author" content="(.+?), (.+?)" />',
+                  page, fmt=lambda res: res)
 
+    submit_date = get(r'citation_date" content="(.+?)/(.+?)/(.+?)"',
+                      page, fmt=lambda res:
+                          "{}_{}_{}".format(res[0][0],res[0][1],res[0][2]))
 
-    # get author
-    authors = re.findall(r'<meta name="citation_author" content="(.+?), (.+?)" />', arxiv_page)
-    if authors == []:
-        return {'status':'FAIL -- authors line not found'}
-
-
-    # get submit date
-    submit_date_find = re.findall\
-        (r'citation_date" content="(.+?)/(.+?)/(.+?)"'\
-             , arxiv_page)
-    if submit_date_find == []:
-        return {'status':'FAIL -- submit date not found'}
-    else:
-        submit_date = "{}_{}_{}".format\
-            (submit_date_find[0][0],submit_date_find[0][1],submit_date_find[0][2])
-
-
-    # get date of current version
-    ver_date_find = re.findall\
-        (r'citation_online_date" content="(.+?)/(.+?)/(.+?)"'\
-             , arxiv_page)
-    if ver_date_find == []:
-        return {'status':'FAIL -- current version date not found'}
-    else:
-        ver_date = "{}_{}_{}".format\
-            (ver_date_find[0][0],ver_date_find[0][1],ver_date_find[0][2])
-
+    ver_date = get(r'citation_online_date" content="(.+?)/(.+?)/(.+?)"',
+                      page, fmt=lambda res:
+                          "{}_{}_{}".format(res[0][0],res[0][1],res[0][2]))
 
     return {'arxiv_num':arxiv_num, 'title':title, 
-            'authors':authors, 
-            'abstract':abstract, 
-            'abs_link':abs_link,
-            'pdf_link':pdf_link, 
-            'version':version,
-            'submit_date':submit_date, 
-            'ver_date':ver_date,
-            'journal':journal,
-            'inspire_link':inspire_link,
+            'authors':authors, 'abstract':abstract, 
+            'abs_link':abs_link, 'pdf_link':pdf_link, 'version':version,
+            'submit_date':submit_date, 'ver_date':ver_date,
+            'journal':journal, 'inspire_link':inspire_link,
             'status':'success'}
 
 
 
 
-def inspire(inspire_page):
+def inspire(page):
 
-    # title
-    title_find = re.findall(r'<title>(.+?) - HEP</title>',inspire_page)
-    if title_find == []:
-        return {'status':'FAIL -- title not found'}
-    else:
-       title = title_find[0]
-    
-    # arxiv number
-    arxiv_num_find = re.findall(r'e-Print: <b>arXiv:(.+?) \[.+?]</b>',inspire_page)
-    if arxiv_num_find == []:
-        arxiv_num = 'not found'
-    else:
-       arxiv_num = arxiv_num_find[0]
+    title = get(r'<title>(.+?) - HEP</title>', page)
+    if title == 'not found':
+        return {'status':'try-inspire failed -- title not found'}
 
-    # get author
-    authors_find = re.findall(r'<a class="authorlink" href=".+?">(.+?)</a>', inspire_page, re.DOTALL)
-    if authors_find == []:
-        return {'status':'FAIL -- authors line not found'}
+    arxiv_num = get(r'e-Print: <b>arXiv:(.+?) \[.+?]</b>', page)
+
+    abstract = get(r'Abstract: </strong>(.+?)</small><br />', 
+                      page, re_option=re.DOTALL)    
+
+    abs_link = get(r'"(http://arXiv.org/abs/.+?)">Abstract', page)
+
+    pdf_link = get(r'"(http://arXiv.org/pdf/.+?)">PDF', page)
+
+    submit_date = get(r'Record created (....)-(..)-(..)', page, fmt=lambda
+                      res: "{}_{}_{}".format(res[0][0],res[0][1],res[0][2]))
+
+    ver_date = get(r', last modified (....)-(..)-(..)', page, fmt=lambda 
+                   res: "{}_{}_{}".format(res[0][0],res[0][1],res[0][2]))
+
+
+    journal = get(r'pp.\n<br /><br /><strong>(.+?)<', page)
+
+    inspire_link = get(r'Information  </a></li><li class=""><a href="(.+?)">References', page)
+
     # write the author data in the same format as that in arxiv_parser
     # like [(family_name, given_name), (family_name, given_name), ...]
-    authors = []
-    for name in authors_find:
-        split_name = re.findall(r'(.+) (.+)', name)
-        authors.append((split_name[0][1],split_name[0][0]))
 
-    # get abstract
-    abstract_find = re.findall(r'Abstract: </strong>(.+?)</small><br />', inspire_page, re.DOTALL)
-    if abstract_find == []:
-        abstract = 'not found'
-    else:
-        abstract = abstract_find[0]
-    
-    # get abstract link
-    abs_link_find = re.findall(r'"(http://arXiv.org/abs/.+?)">Abstract', inspire_page)
-    if abs_link_find == []:
-        abs_link = 'not found'
-    else:
-        abs_link = abs_link_find[0]
+    def author_fmt(res):
+        authors = []
+        for name in res:
+            split_name = re.findall(r'(.+) (.+)', name)
+            authors.append((split_name[0][1],split_name[0][0]))
+        return authors
 
-    # get pdf link
-    pdf_link_find = re.findall(r'"(http://arXiv.org/pdf/.+?)">PDF', inspire_page)
-    if pdf_link_find == []:
-        pdf_link = 'not found'
-    else:
-        pdf_link = pdf_link_find[0]
+    authors = get(r'<a class="authorlink" href=".+?">(.+?)</a>', page, 
+                  re_option=re.DOTALL, fmt=author_fmt)
+    if authors == 'not found':
+        return {'status':'try-inspire failed -- authors not found'}
 
 
-    # get submit date
-    submit_date_find = re.findall(r'Record created (....)-(..)-(..)', inspire_page)
-    if submit_date_find == []:
-        return {'status':'FAIL -- submit date not found'}
-    else:
-        submit_date = "{}_{}_{}".format\
-            (submit_date_find[0][0],submit_date_find[0][1],submit_date_find[0][2])
-
-
-    # get date of current version
-    ver_date_find = re.findall(r', last modified (....)-(..)-(..)', inspire_page)
-    if ver_date_find == []:
-        return {'status':'FAIL -- current version date not found'}
-    else:
-        ver_date = "{}_{}_{}".format\
-            (ver_date_find[0][0],ver_date_find[0][1],ver_date_find[0][2])
-
-
-    # get journal reference
-    journal_find = re.findall\
-        (r'pp.\n<br /><br /><strong>(.+?)<', inspire_page)
-    if journal_find == []:
-        journal = 'no publication information'
-    else:
-        journal = journal_find[0]
-
-    # get inspire link
-    inspire_link_find = re.findall(r'Information  </a></li><li class=""><a href="(.+?)">References', inspire_page)
-    if inspire_link_find == []:
-        inspire_link = 'not found'
-    else:
-        inspire_link = inspire_link_find[0]
 
 
     return {'arxiv_num':arxiv_num, 'title':title, 
