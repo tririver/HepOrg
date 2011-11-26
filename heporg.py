@@ -47,10 +47,19 @@ use html_file_name as input, and generate record file tag_name.org
 
 
 def msg(logfile, message, quiet='F'):
-    logfile.write(message + "\n")
+    if logfile!= '':
+        logfile.write(message + "\n")
     if quiet == 'F':
         print(message)
     return
+
+
+def err_exit(logfile, message, notify='F'):
+    if notify !='F':
+        subprocess.call(["notify-send", "--hint=int:transient:1", 
+                         "HepOrg: " + message])
+    msg(logfile, message)
+    sys.exit(1)
 
 
 
@@ -64,7 +73,7 @@ def download_file(file_link, file_name):
 
 
 def main(htm_file_name, org_file_name, 
-         dl='T', open_reader='T'):
+         dl='T', open_reader='T', notify='F'):
 
     cur_dir = refconf.dir_prefix
     pdf_dir = cur_dir + 'pdf/'
@@ -75,8 +84,9 @@ def main(htm_file_name, org_file_name,
     try:
         htmfile = open(htm_file_name)
     except IOError:
-        msg(logfile, "Input file " + htm_file_name + " not found. Abort.")
-        sys.exit(1)
+        err_exit(logfile, 
+                 "Error: input file " + htm_file_name + " not found. Abort."
+                 , notify)
     htm_string = htmfile.read()
 
     # try arxiv parser:
@@ -91,9 +101,8 @@ def main(htm_file_name, org_file_name,
     if paper_data['status'] == 'success':
         msg(logfile,"File parsed successfully")
     else:
-        msg(logfile,"Error: " + paper_data['status'])
-        msg(logfile,"Abort")
-        sys.exit(1)
+        # in this case, non of the parsers work:
+        err_exit(logfile,"Error: " + paper_data['status'] + ". Abort", notify)
         
 
     pdf_fn = org_fmt.file_name(paper_data)
@@ -137,9 +146,14 @@ def main(htm_file_name, org_file_name,
 
 # examine passing-in parameter:
 
+if refconf.notify !='F':
+    subprocess.call(["notify-send", "--hint=int:transient:1",
+                     "HepOrg: start parsing and downloading..."])
+
 if len(sys.argv)==1:
     print_usage()
-    sys.exit(1)
+    err_exit('', "Error: found no input argument -- exit.",
+             notify=refconf.notify)
 elif len(sys.argv)==2:
     org_file_name = 'toread.org'
     htm_file_name = sys.argv[1]
@@ -147,4 +161,8 @@ elif len(sys.argv)==3:
     org_file_name = sys.argv[1] + '.org'
     htm_file_name = sys.argv[2]
     
-main(htm_file_name, org_file_name)
+main(htm_file_name, org_file_name, notify=refconf.notify)
+
+if refconf.notify !='F':
+    subprocess.call(["notify-send", "--hint=int:transient:1",
+                     "HepOrg: Done :)"])
