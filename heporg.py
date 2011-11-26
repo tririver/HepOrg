@@ -24,8 +24,7 @@ import urllib.request
 import sys
 
 import refconf
-import arxiv_parser
-import inspire_parser
+import parsers
 import org_fmt
 
 
@@ -89,19 +88,18 @@ def main(htm_file_name, org_file_name,
                  , notify)
     htm_string = htmfile.read()
 
-    # try arxiv parser:
-    msg(logfile,"Try arXiv parser ...")
-    paper_data = arxiv_parser.get_data(htm_string)
-
-    # try inspire parser:
+    # try parsers defined in parsers.parser
+    for parser in parsers.list:
+        msg(logfile,"Try " + parser[0] + " parser ...")
+        paper_data = parser[1](htm_string)
+        if paper_data['status'] == 'success':
+            msg(logfile,"File parsed successfully")
+            break
+        else:
+            msg(logfile, parser[0] + " cannot parse page correctly.")
+        
+    # if none of the parsers work:
     if paper_data['status'] != 'success':
-        msg(logfile,"Try inspire parser ...")
-        paper_data = inspire_parser.get_data(htm_string)
-
-    if paper_data['status'] == 'success':
-        msg(logfile,"File parsed successfully")
-    else:
-        # in this case, non of the parsers work:
         err_exit(logfile,"Error: " + paper_data['status'] + ". Abort", notify)
         
 
