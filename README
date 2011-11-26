@@ -1,0 +1,58 @@
+* Introduction:
+
+** Heporg is a manager for high energy physics references
+   - heporg downloads pdf file from arxiv.org or inspirehep.net
+   - heporg generates a readable pdf file name (author_arxivNumber.pdf)
+   - heporg generates .org files for storing paper information, 
+     including author, abstract, journal, etc
+
+
+
+* INSTALL:
+
+** Make a directory to be used by orghep, under which
+   - make a subdirectory named 'org', to store .org files
+   - another named 'pdf', to store .pdf files
+
+** Edit refconf.py: 
+   - change pdf_reader, and the arguement to pass to the reader
+   - change dir_prefix, which is the directory to put heporg files
+
+
+
+* Usage:
+
+** Heporg is recommended to be used together with a firefox addon
+   "viewsourcewith", use settings -> new, enter editor path as
+   (path to the package)/arxiv_toread.py
+
+** Then at the arxiv abstract page (http://arxiv.org/abs/xxxx.xxxx)
+   click the viewsourcewith icon. This click will
+   - generate a record at dir_prefix/org/toread.org
+   - download the pdf file to dir_prefix/pdf/author_arxivNum.pdf
+
+** The .org file is text format thus one can use any editor to view.
+   However, emacs is recommended because the .org file is formatted
+   according to the emacs "org-mode"
+
+** Alternatively, one can save the source of the webpage, 
+   and in a terminal type ./arxiv_toreay.py file.htm to do the same thing.
+
+** Part of the code can be used as parsers of arxiv.org and inspirehep.net,
+   to generate other types of outputs
+
+
+
+* Mechanism:
+
+** [arxiv, inspire]_[toread, classical, useful].py are simple scripts
+   easily callable by "viewsourcewith"
+
+** [arxiv, inspire]_parser.py are parsers for the htm file.
+
+** refio.py generate formatted org file, with the help of org_fmt.py
+
+
+
+* Comments and bug reports are welcome:
+  write to tririverwangyi@gmail.com
