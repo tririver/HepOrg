@@ -22,50 +22,47 @@ import re
 # to add a parser, see the end of this file
 
 
+
+
+def get(re_str, page, re_option=0, fmt=''):
+    try_search = re.findall(re_str, page, re_option)
+    if try_search ==[]:
+        return 'not found'
+    elif fmt == '':
+        return try_search[0]
+    else:
+        return fmt(try_search)
+        
+        
+
 def arxiv(arxiv_page):
 
-    # get arxiv number and title
-    title_block_re = re.compile(r'<title>\[(.+?)] (.+?)</title>', re.DOTALL)
-    title_block = re.findall(title_block_re, arxiv_page)
-    if title_block == []:
-        return {'status':'FAIL -- title line not found'}
-    arxiv_num = title_block[0][0]
-    title = title_block[0][1]
+    arxiv_num = get(r'<title>\[(.+?)] .+?</title>', 
+                      arxiv_page, re_option=re.DOTALL)
+
+    title = get(r'<title>\[.+?] (.+?)</title>', 
+                      arxiv_page, re_option=re.DOTALL)
+
+    abstract = get(r'<blockquote class="abstract">\n<span class="descriptor">Abstract:</span> (.+)\n</blockquote>', 
+                      arxiv_page, re_option=re.DOTALL)    
+
+    abs_link = get(r'dc:identifier="(.+?)"', arxiv_page)
+
+    pdf_link = get(r'citation_pdf_url" content="(.+?)" />', arxiv_page)
+
+    version = get(r'<b>\[v(.+?)]</b>', arxiv_page)
+
+    journal = get(r'td class="tablecell jref">(.+?)</td>', arxiv_page)
+
+    inspire_link = get('Citations</h3><ul><li><a href="(.+?)">INSPIRE',
+                       arxiv_page)
+
+
 
     # get author
     authors = re.findall(r'<meta name="citation_author" content="(.+?), (.+?)" />', arxiv_page)
     if authors == []:
         return {'status':'FAIL -- authors line not found'}
-
-    # get abstract
-    abstract_re = re.compile(r'<blockquote class="abstract">\n<span class="descriptor">Abstract:</span> (.+)\n</blockquote>', re.DOTALL)
-    abstract_find = re.findall(abstract_re, arxiv_page)
-    if abstract_find == []:
-        return {'status':'FAIL -- abstract not found'}
-    else:
-        abstract = abstract_find[0]
-    
-    # get abstract link
-    abs_link_find = re.findall(r'dc:identifier="(.+?)"', arxiv_page)
-    if abs_link_find == []:
-        return {'status':'FAIL -- abstract link not found'}
-    else:
-        abs_link = abs_link_find[0]
-
-    # get pdf link
-    pdf_link_find = re.findall(r'citation_pdf_url" content="(.+?)" />', arxiv_page)
-    if pdf_link_find == []:
-        return {'status':'FAIL -- pdf link not found'}
-    else:
-        pdf_link = pdf_link_find[0]
-
-
-    # get version
-    version_find = re.findall(r'<b>\[v(.+?)]</b>', arxiv_page)
-    if version_find == []:
-        return {'status':'FAIL -- paper version not found'}
-    else:
-        version = version_find[0]
 
 
     # get submit date
@@ -88,23 +85,6 @@ def arxiv(arxiv_page):
     else:
         ver_date = "{}_{}_{}".format\
             (ver_date_find[0][0],ver_date_find[0][1],ver_date_find[0][2])
-
-
-    # get journal reference
-    journal_find = re.findall\
-        (r'td class="tablecell jref">(.+?)</td>', arxiv_page)
-    if journal_find == []:
-        journal = 'no publication information'
-    else:
-        journal = journal_find[0]
-
-
-    # get inspire link
-    inspire_link_find = re.findall('Citations</h3><ul><li><a href="(.+?)">INSPIRE', arxiv_page)
-    if inspire_link_find == []:
-        inspire_link = 'not found'
-    else:
-        inspire_link = inspire_link_find[0]
 
 
     return {'arxiv_num':arxiv_num, 'title':title, 
