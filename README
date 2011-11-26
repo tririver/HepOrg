@@ -8,16 +8,13 @@
 
 
 
-* INSTALL:
+* INSTALL (only tested on linux):
 
-** Make a directory to be used by orghep, under which
-   - make a subdirectory named 'org', to store .org files
-   - another named 'pdf', to store .pdf files
+** Download the package (preferably using git as follows:)
 
-** Edit refconf.py: 
-   - change pdf_reader, and the arguement to pass to the reader
-   - change dir_prefix, which is the directory to put heporg files
+   git clone git@github.com:tririver/HepOrg.git
 
+** run setup.sh (you may want to have a read before running it)
 
 
 * Usage:
@@ -35,8 +32,9 @@
    However, emacs is recommended because the .org file is formatted
    according to the emacs "org-mode"
 
-** Alternatively, one can save the source of the webpage, 
-   and in a terminal type ./arxiv_toreay.py file.htm to do the same thing.
+** Alternatively (without viewsourcewith), 
+   one can save the source of the webpage, 
+   and in a terminal type ./arxiv_toread.py file.htm to do the same thing.
 
 ** Part of the code can be used as parsers of arxiv.org and inspirehep.net,
    to generate other types of outputs
