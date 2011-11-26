@@ -43,7 +43,7 @@
 
 * Mechanism:
 
-** [arxiv, inspire]_[toread, classical, useful].py are simple scripts
+** [arxiv, inspire]_[toread, classic, useful].py are simple scripts
    easily callable by "viewsourcewith"
 
 ** [arxiv, inspire]_parser.py are parsers for the htm file.
