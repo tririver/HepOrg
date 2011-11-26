@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 
 # Copyright (C) 2011 by Yi Wang
 # tririverwangyi@gmail.com
@@ -23,7 +23,13 @@ import subprocess
 import urllib.request
 import sys
 
-import refconf
+try:
+    import refconf
+except ImportError:
+    print("Error: refconf.py not found. Please run setup.sh first.")
+    sys.exit(1)
+
+
 import parsers
 import org_fmt
 
