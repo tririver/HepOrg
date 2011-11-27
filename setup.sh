@@ -9,10 +9,18 @@ READERARG=
 
 mkdir -p $LOCALDIR/pdf
 mkdir -p $LOCALDIR/org
+echo "dir_prefix = '$LOCALDIR/'" >> refconf.py
+echo "" >> refconf.py
+echo "download = 'T'" >> refconf.py
+echo "" >> refconf.py
+echo "open_reader = 'T'" >> refconf.py
 echo "pdf_reader = '$READER'" > refconf.py
 echo "pdf_reader_arg = '$READERARG'" >> refconf.py
-echo "dir_prefix = '$LOCALDIR/'" >> refconf.py
+echo "" >> refconf.py
+echo "# If you want desktop notificatin, set notify to 'T'" >> refconf.py
 echo "notify = 'F'" >> refconf.py
+
+echo "open_reader = 'T'" >> refconf.py
 # run a test
 echo "Setup finished, running a test..."
 echo ""
@@ -20,7 +28,7 @@ echo "Download a paper may need some time"
 echo ""
 echo "If everything works, you will find your system pdf-reader popup,"
 echo "  and the pdf file is saved to"
-echo "  $LOCALDIR/pdf/Maldacena_astro-ph_0210603.pdf"
+echo "  $LOCALDIR/pdf/Maldacena_arXiv_astro-ph_0210603_v5.pdf"
 echo "Also, the meta data is restored in $LOCALDIR/org/classic.org"
 echo "It is a text file, but best read by emacs org-mode."
 echo "In emacs org-mode, you can use tab key to fold / unfold details"

@@ -23,7 +23,9 @@ def file_name(paper_data):
     fn = ''
     for author in paper_data['authors']:
         fn = fn + author[0] + '_'
-    arxiv_num_fmt = paper_data['arxiv_num'].replace('.','_').replace('/','_')
+    arxiv_num_fmt = "arXiv_" \
+        + paper_data['arxiv_num'].replace('.','_').replace('/','_') \
+        + "_v" + paper_data['version']
     fn = fn + arxiv_num_fmt + '.pdf'
     return fn
 
