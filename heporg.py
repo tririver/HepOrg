@@ -18,7 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with HepOrg.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import subprocess
 import urllib.request
 import sys
@@ -29,8 +28,8 @@ except ImportError:
     print("Error: refconf.py not found. Please run setup.sh first.")
     sys.exit(1)
 
-
 import parsers
+import pdf_filters
 import org_fmt
 
 
@@ -59,6 +58,7 @@ def msg(logfile, message, quiet='F'):
     return
 
 
+
 def err_exit(logfile, message):
     if refconf.notify !='F':
         subprocess.call(["notify-send", "--hint=int:transient:1", 
@@ -77,8 +77,6 @@ def download_pdf(file_link, local_pdf_name):
     localFile.write(f.read())
     localFile.close()
     return
-
-
 
 
 
@@ -102,7 +100,8 @@ def check_input(argv):
     return (cur_dir, pdf_dir, org_dir, org_file_name, htm_file_name)
 
 
-def try_parsers():
+
+def try_parsers(htm_string, logfile):
     # try parsers defined in parsers.parser
     for parser in parsers.list:
         msg(logfile,"Try " + parser[0] + " parser ...")
@@ -118,6 +117,15 @@ def try_parsers():
         err_exit(logfile,"Error: " + paper_data['status'] + ". Abort")
 
     return paper_data
+
+
+
+def apply_pdf_filters(local_pdf_name, logfile):
+    for pdf_filter in pdf_filters.list:
+        msg(logfile,"Applying "+pdf_filter[0])
+        pdf_filter[1](local_pdf_name)
+    return
+
 
 
 def determine_pdf_name(paper_data):
@@ -142,6 +150,7 @@ def open_reader(local_pdf_name):
                          refconf.pdf_reader_arg, local_pdf_name])
 
 
+
 # main starts here
 
 # Initialization: set dirs and file names
@@ -158,7 +167,7 @@ except IOError:
 htm_string = htmfile.read()
 
 # parse the htm file
-paper_data = try_parsers()
+paper_data = try_parsers(htm_string, logfile)
 
 # determine pdf file name
 local_pdf_name = determine_pdf_name(paper_data)
@@ -174,7 +183,7 @@ download_pdf(paper_data['pdf_link'], local_pdf_name)
 open_reader(local_pdf_name)
 
 # apply pdf filters after opening reader because it may take a long time
-
+apply_pdf_filters(local_pdf_name, logfile)
 
 # clean up
 logfile.close()

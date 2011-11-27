@@ -1,6 +1,7 @@
 import subprocess
 import re
 
+# determine boundary boxes, called by pdfcrop
 def decide_bb(str):
     bb_str = re.findall(r'%%BoundingBox: (.+?) (.+?) (.+?) (.+?)\n', str)
     # for xmin, the first page is not considered because
