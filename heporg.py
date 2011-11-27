@@ -83,6 +83,10 @@ def download_pdf(file_link, local_pdf_name):
 
 
 def check_input(argv):
+    cur_dir = refconf.dir_prefix
+    pdf_dir = cur_dir + 'pdf/'
+    org_dir = cur_dir + 'org/'
+
     if len(argv)==1:
         print_usage()
         err_exit('', "Error: found no input argument -- exit.")
@@ -92,7 +96,10 @@ def check_input(argv):
     elif len(argv)==3:
         org_file_name = argv[1] + '.org'
         htm_file_name = argv[2]
-    return (org_file_name, htm_file_name)
+    if refconf.notify !='F':
+        subprocess.call(["notify-send", "--hint=int:transient:1",
+                         "HepOrg: From "+htm_file_name+" to "+org_file_name])
+    return (cur_dir, pdf_dir, org_dir, org_file_name, htm_file_name)
 
 
 def try_parsers():
@@ -137,12 +144,10 @@ def open_reader(local_pdf_name):
 
 # main starts here
 
+# Initialization: set dirs and file names
+cur_dir, pdf_dir, org_dir, org_file_name, htm_file_name = check_input(sys.argv)
 
-# Initialization: set dirs and file names, open file, read html_string
-cur_dir = refconf.dir_prefix
-pdf_dir = cur_dir + 'pdf/'
-org_dir = cur_dir + 'org/'
-org_file_name, htm_file_name = check_input(sys.argv)
+# open the log, org and htm files
 logfile = open(cur_dir+'events.log', 'w') # 'a' for appending
 orgfile = open(org_dir+org_file_name, 'a')
 try:
@@ -152,26 +157,24 @@ except IOError:
              "Error: input file " + htm_file_name + " not found. Abort.")
 htm_string = htmfile.read()
 
-if refconf.notify !='F':
-    subprocess.call(["notify-send", "--hint=int:transient:1",
-                     "HepOrg: From "+htm_file_name+" to "+org_file_name])
-
 # parse the htm file
 paper_data = try_parsers()
 
+# determine pdf file name
 local_pdf_name = determine_pdf_name(paper_data)
 
 # write .org file
 msg(logfile,"Writing to" + org_dir + org_file_name)
 orgfile.write(org_fmt.output(paper_data, local_pdf_name))
 
-
 # download pdf
 download_pdf(paper_data['pdf_link'], local_pdf_name)
 
-
 # open reader
 open_reader(local_pdf_name)
+
+# apply pdf filters after opening reader because it may take a long time
+
 
 # clean up
 logfile.close()
