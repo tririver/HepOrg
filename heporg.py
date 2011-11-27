@@ -68,7 +68,10 @@ def err_exit(logfile, message):
 
 
 
-def download_file(file_link, file_name):
+def download_pdf(file_link, local_pdf_name):
+    if refconf.download != 'T' or local_pdf_name == '':
+        return
+    msg(logfile,"Downloading " + local_pdf_name)
     f = urllib.request.urlopen(file_link)    
     localFile = open(file_name, 'wb')
     localFile.write(f.read())
@@ -92,6 +95,45 @@ def check_input(argv):
     return (org_file_name, htm_file_name)
 
 
+def try_parsers():
+    # try parsers defined in parsers.parser
+    for parser in parsers.list:
+        msg(logfile,"Try " + parser[0] + " parser ...")
+        paper_data = parser[1](htm_string)
+        if paper_data['status'] == 'success':
+            msg(logfile,"File parsed successfully")
+            break
+        else:
+            msg(logfile, parser[0] + " cannot parse page correctly.")
+        
+    # if none of the parsers work:
+    if paper_data['status'] != 'success':
+        err_exit(logfile,"Error: " + paper_data['status'] + ". Abort")
+
+    return paper_data
+
+
+def determine_pdf_name(paper_data):
+    pdf_fn = org_fmt.file_name(paper_data)
+    if pdf_fn != '':
+        local_pdf_name = pdf_dir + pdf_fn
+    else:
+        local_pdf_name = ''
+        msg(logfile,"No pdf_link, thus no file to download or open")
+    return local_pdf_name
+
+
+
+def open_reader(local_pdf_name):
+    if refconf.open_reader != 'T' or local_pdf_name == '':
+        return
+    msg(logfile,"Starting reader: " + refconf.pdf_reader)
+    if refconf.pdf_reader_arg =='':
+        subprocess.call([refconf.pdf_reader, local_pdf_name])
+    else:
+        subprocess.call([refconf.pdf_reader, 
+                         refconf.pdf_reader_arg, local_pdf_name])
+
 
 # main starts here
 
@@ -114,52 +156,24 @@ if refconf.notify !='F':
     subprocess.call(["notify-send", "--hint=int:transient:1",
                      "HepOrg: From "+htm_file_name+" to "+org_file_name])
 
+# parse the htm file
+paper_data = try_parsers()
 
+local_pdf_name = determine_pdf_name(paper_data)
 
-# try parsers defined in parsers.parser
-for parser in parsers.list:
-    msg(logfile,"Try " + parser[0] + " parser ...")
-    paper_data = parser[1](htm_string)
-    if paper_data['status'] == 'success':
-        msg(logfile,"File parsed successfully")
-        break
-    else:
-            msg(logfile, parser[0] + " cannot parse page correctly.")
-        
-    # if none of the parsers work:
-if paper_data['status'] != 'success':
-    err_exit(logfile,"Error: " + paper_data['status'] + ". Abort")
-        
-
-pdf_fn = org_fmt.file_name(paper_data)
-if pdf_fn != '':
-    local_pdf_name = pdf_dir + pdf_fn
-else:
-    local_pdf_name = ''
-
-    
+# write .org file
 msg(logfile,"Writing to" + org_dir + org_file_name)
 orgfile.write(org_fmt.output(paper_data, local_pdf_name))
 
 
-if local_pdf_name == '':
-    msg(logfile,"No pdf_link, thus no file to download or open\nDone.")
-    
+# download pdf
+download_pdf(paper_data['pdf_link'], local_pdf_name)
 
 
-if refconf.download == 'T':
-    msg(logfile,"Downloading " + local_pdf_name)
-    download_file(paper_data['pdf_link'], local_pdf_name)
+# open reader
+open_reader(local_pdf_name)
 
-
-if refconf.open_reader == 'T':
-    msg(logfile,"Starting reader: " + refconf.pdf_reader)
-    if refconf.pdf_reader_arg =='':
-        subprocess.call([refconf.pdf_reader, local_pdf_name])
-    else:
-        subprocess.call([refconf.pdf_reader, 
-                         refconf.pdf_reader_arg, local_pdf_name])
-        
+# clean up
 logfile.close()
 orgfile.close()
 htmfile.close()
