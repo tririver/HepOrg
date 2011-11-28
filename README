@@ -59,7 +59,7 @@
 
 ** org_fmt.py format the .org file
 
-
+** pdf_filters.py applies filters (currently pdfcrop)
 
 * Comments and bug reports are welcome:
   write to tririverwangyi@gmail.com

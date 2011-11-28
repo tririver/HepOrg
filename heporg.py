@@ -59,21 +59,23 @@ def msg(logfile, message, quiet='F'):
 
 
 
-def err_exit(logfile, message):
+def code_exit(logfile, message, code = 1):
     if refconf.notify !='F':
         subprocess.call(["notify-send", "--hint=int:transient:1", 
                          "HepOrg: " + message])
     msg(logfile, message)
-    sys.exit(1)
+    logfile.close()
+    sys.exit(code)
 
 
 
 def download_pdf(file_link, local_pdf_name):
     if refconf.download != 'T' or local_pdf_name == '':
-        return
+        code_exit(logfile, 
+                  'HepOrg: written to '+org_file_name+', no pdf generated.', 0)
     msg(logfile,"Downloading " + local_pdf_name)
     f = urllib.request.urlopen(file_link)    
-    localFile = open(file_name, 'wb')
+    localFile = open(local_pdf_name, 'wb')
     localFile.write(f.read())
     localFile.close()
     return
@@ -87,7 +89,7 @@ def check_input(argv):
 
     if len(argv)==1:
         print_usage()
-        err_exit('', "Error: found no input argument -- exit.")
+        code_exit('', "Error: found no input argument -- exit.")
     elif len(argv)==2:
         org_file_name = 'toread.org'
         htm_file_name = argv[1]
@@ -114,7 +116,7 @@ def try_parsers(htm_string, logfile):
         
     # if none of the parsers work:
     if paper_data['status'] != 'success':
-        err_exit(logfile,"Error: " + paper_data['status'] + ". Abort")
+        code_exit(logfile,"Error: " + paper_data['status'] + ". Abort")
 
     return paper_data
 
@@ -162,7 +164,7 @@ orgfile = open(org_dir+org_file_name, 'a')
 try:
     htmfile = open(htm_file_name)
 except IOError:
-    err_exit(logfile, 
+    code_exit(logfile, 
              "Error: input file " + htm_file_name + " not found. Abort.")
 htm_string = htmfile.read()
 
@@ -185,11 +187,9 @@ open_reader(local_pdf_name)
 # apply pdf filters after opening reader because it may take a long time
 apply_pdf_filters(local_pdf_name, logfile)
 
-# clean up
-logfile.close()
+code_exit(logfile, 
+          'HepOrg: Generated '+local_pdf_name+' and '+org_file_name, 0)
+
+# clean up (log file is closed inside code_exit)
 orgfile.close()
 htmfile.close()
-
-if refconf.notify !='F':
-    subprocess.call(["notify-send", "--hint=int:transient:1",
-                     "HepOrg: Done :)"])

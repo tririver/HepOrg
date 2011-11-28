@@ -74,7 +74,7 @@ def arxiv(page):
                       page, fmt=lambda res:
                           "{}_{}_{}".format(res[0][0],res[0][1],res[0][2]))
 
-    return {'arxiv_num':arxiv_num, 'title':title, 
+    return {'page':'arxiv', 'arxiv_num':arxiv_num, 'title':title, 
             'authors':authors, 'abstract':abstract, 
             'abs_link':abs_link, 'pdf_link':pdf_link, 'version':version,
             'submit_date':submit_date, 'ver_date':ver_date,
@@ -125,7 +125,7 @@ def inspire(page):
     if authors == 'not found':
         return {'status':'try-inspire failed -- authors not found'}
 
-    return {'arxiv_num':arxiv_num, 'title':title, 
+    return {'page':'inspire', 'arxiv_num':arxiv_num, 'title':title, 
             'authors':authors, 'abstract':abstract, 'abs_link':abs_link,
             'pdf_link':pdf_link, 'version':'?',
             'submit_date':submit_date, 'ver_date':ver_date,

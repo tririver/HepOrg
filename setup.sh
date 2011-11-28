@@ -20,7 +20,6 @@ echo "" >> refconf.py
 echo "# If you want desktop notificatin, set notify to 'T'" >> refconf.py
 echo "notify = 'F'" >> refconf.py
 
-echo "open_reader = 'T'" >> refconf.py
 # run a test
 echo "Setup finished, running a test..."
 echo ""
