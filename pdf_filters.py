@@ -20,7 +20,3 @@ def pdfcrop(fn):
     eval_str = 'pdfcrop'+try_bb+fn+' /tmp/tmp_by_pdfcrop.pdf'
     subprocess.getoutput(eval_str)
     subprocess.getoutput('cp /tmp/tmp_by_pdfcrop.pdf '+fn)
-
-
-
-list = [('pdfcrop', pdfcrop)]

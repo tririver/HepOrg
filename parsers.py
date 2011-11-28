@@ -19,9 +19,6 @@
 
 import re
 
-# to add a parser, see the end of this file
-
-
 
 
 def get(re_str, page, re_option=0, fmt=''):
@@ -60,6 +57,8 @@ def arxiv(page):
 
     journal = get(r'td class="tablecell jref">(.+?)</td>', page)
 
+    journal_link = get(r'(http://dx.doi.org/.+?)">', page)
+
     inspire_link = get('Citations</h3><ul><li><a href="(.+?)">INSPIRE',
                        page)
 
@@ -78,7 +77,8 @@ def arxiv(page):
             'authors':authors, 'abstract':abstract, 
             'abs_link':abs_link, 'pdf_link':pdf_link, 'version':version,
             'submit_date':submit_date, 'ver_date':ver_date,
-            'journal':journal, 'inspire_link':inspire_link,
+            'journal':journal, 'journal_link':journal_link,
+            'inspire_link':inspire_link,
             'status':'success'}
 
 
@@ -108,6 +108,8 @@ def inspire(page):
 
     journal = get(r'pp.\n<br /><br /><strong>(.+?)<', page)
 
+    journal_link = get(r'(http://dx.doi.org/.+?)">', page)
+
     inspire_link = get(r'Information  </a></li><li class=""><a href="(.+?)">References', page)
 
     # write the author data in the same format as that in arxiv_parser
@@ -130,15 +132,5 @@ def inspire(page):
             'pdf_link':pdf_link, 'version':'?',
             'submit_date':submit_date, 'ver_date':ver_date,
             'journal':journal,'inspire_link':inspire_link,
+            'journal_link':journal_link,
             'status':'success'}
-
-
-
-
-
-
-
-
-
-# to add a parser, add into this list, and also add the entry function as above
-list = [('arxiv', arxiv), ('inspire', inspire)]

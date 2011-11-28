@@ -22,20 +22,20 @@ import subprocess
 import urllib.request
 import sys
 
+import parsers
+import pdf_filters
+import org_fmt
+
 try:
     import refconf
 except ImportError:
     print("Error: refconf.py not found. Please run setup.sh first.")
     sys.exit(1)
 
-import parsers
-import pdf_filters
-import org_fmt
-
 
 
 def print_usage():
-    usage = '''
+    print('''
 Usage:
 
 (a) heporg.py html_file_name
@@ -45,35 +45,33 @@ use html_file_name as input, the default tag is toread (thus generate default re
 (b) heporg.py tag_name html_file_name
 
 use html_file_name as input, and generate record file tag_name.org
-'''
-    print(usage)
+''')
 
 
 
-def msg(logfile, message, quiet='F'):
-    if logfile!= '':
-        logfile.write(message + "\n")
+def msg(message, quiet='F', notify='F'):
+    logfile = open(refconf.dir_prefix+'events.log', 'a')
+    logfile.write(message + "\n")
+    logfile.close()
     if quiet == 'F':
         print(message)
+    if notify !='F':
+        subprocess.call(["notify-send", "--hint=int:transient:1", 
+                         "HepOrg: " + message])
     return
 
 
 
-def code_exit(logfile, message, code = 1):
-    if refconf.notify !='F':
-        subprocess.call(["notify-send", "--hint=int:transient:1", 
-                         "HepOrg: " + message])
-    msg(logfile, message)
-    logfile.close()
+def code_exit(message, code = 1):
+    msg(message, notify = refconf.notify)
     sys.exit(code)
 
 
 
 def download_pdf(file_link, local_pdf_name):
     if refconf.download != 'T' or local_pdf_name == '':
-        code_exit(logfile, 
-                  'HepOrg: written to '+org_file_name+', no pdf generated.', 0)
-    msg(logfile,"Downloading " + local_pdf_name)
+        code_exit('HepOrg: written to '+org_file_name+', no pdf generated.', 0)
+    msg("Downloading " + local_pdf_name)
     f = urllib.request.urlopen(file_link)    
     localFile = open(local_pdf_name, 'wb')
     localFile.write(f.read())
@@ -83,68 +81,74 @@ def download_pdf(file_link, local_pdf_name):
 
 
 def check_input(argv):
-    cur_dir = refconf.dir_prefix
-    pdf_dir = cur_dir + 'pdf/'
-    org_dir = cur_dir + 'org/'
-
     if len(argv)==1:
         print_usage()
         code_exit('', "Error: found no input argument -- exit.")
     elif len(argv)==2:
-        org_file_name = 'toread.org'
+        org_file_name = refconf.dir_prefix + 'org/toread.org'
         htm_file_name = argv[1]
     elif len(argv)==3:
-        org_file_name = argv[1] + '.org'
+        org_file_name = refconf.dir_prefix + 'org/' + argv[1] + '.org'
         htm_file_name = argv[2]
-    if refconf.notify !='F':
-        subprocess.call(["notify-send", "--hint=int:transient:1",
-                         "HepOrg: From "+htm_file_name+" to "+org_file_name])
-    return (cur_dir, pdf_dir, org_dir, org_file_name, htm_file_name)
+    msg("Start working from "+htm_file_name
+        +" to "+org_file_name, notify = refconf.notify)
+
+    try:
+        htmfile = open(htm_file_name)
+    except IOError:
+        code_exit("Error: input file " + htm_file_name + " not found. Abort.")
+    htm_string = htmfile.read()
+    htmfile.close()
+
+    return (org_file_name, htm_file_name, htm_string)
 
 
 
-def try_parsers(htm_string, logfile):
+def try_parsers(htm_string):
     # try parsers defined in parsers.parser
-    for parser in parsers.list:
-        msg(logfile,"Try " + parser[0] + " parser ...")
+    for parser in refconf.parser_list:
+        msg("Try " + parser[0] + " parser ...")
         paper_data = parser[1](htm_string)
         if paper_data['status'] == 'success':
-            msg(logfile,"File parsed successfully")
+            msg("File parsed successfully")
             break
         else:
-            msg(logfile, parser[0] + " cannot parse page correctly.")
+            msg(parser[0] + " cannot parse page correctly.")
         
     # if none of the parsers work:
     if paper_data['status'] != 'success':
-        code_exit(logfile,"Error: " + paper_data['status'] + ". Abort")
+        code_exit("Error: " + paper_data['status'] + ". Abort")
 
     return paper_data
 
 
 
-def apply_pdf_filters(local_pdf_name, logfile):
-    for pdf_filter in pdf_filters.list:
-        msg(logfile,"Applying "+pdf_filter[0])
+def apply_pdf_filters(local_pdf_name):
+    for pdf_filter in refconf.pdf_filter_list:
+        msg("Applying "+pdf_filter[0])
         pdf_filter[1](local_pdf_name)
     return
 
 
 
 def determine_pdf_name(paper_data):
-    pdf_fn = org_fmt.file_name(paper_data)
-    if pdf_fn != '':
-        local_pdf_name = pdf_dir + pdf_fn
-    else:
-        local_pdf_name = ''
-        msg(logfile,"No pdf_link, thus no file to download or open")
-    return local_pdf_name
+    if paper_data['pdf_link'] == 'not found':
+        msg("Found no pdf_link, thus no file to download or open")
+        return ''
+    fn = refconf.dir_prefix + 'pdf/'
+    for author in paper_data['authors']:
+        fn = fn + author[0] + '_'
+    arxiv_num_fmt = "arXiv_" \
+        + paper_data['arxiv_num'].replace('.','_').replace('/','_')
+    fn = fn + arxiv_num_fmt + '.pdf'
+    return fn
 
 
 
 def open_reader(local_pdf_name):
     if refconf.open_reader != 'T' or local_pdf_name == '':
         return
-    msg(logfile,"Starting reader: " + refconf.pdf_reader)
+    msg("Starting reader: " + refconf.pdf_reader)
     if refconf.pdf_reader_arg =='':
         subprocess.call([refconf.pdf_reader, local_pdf_name])
     else:
@@ -156,27 +160,17 @@ def open_reader(local_pdf_name):
 # main starts here
 
 # Initialization: set dirs and file names
-cur_dir, pdf_dir, org_dir, org_file_name, htm_file_name = check_input(sys.argv)
-
-# open the log, org and htm files
-logfile = open(cur_dir+'events.log', 'w') # 'a' for appending
-orgfile = open(org_dir+org_file_name, 'a')
-try:
-    htmfile = open(htm_file_name)
-except IOError:
-    code_exit(logfile, 
-             "Error: input file " + htm_file_name + " not found. Abort.")
-htm_string = htmfile.read()
+org_file_name, htm_file_name, htm_string = check_input(sys.argv)
 
 # parse the htm file
-paper_data = try_parsers(htm_string, logfile)
+paper_data = try_parsers(htm_string)
 
 # determine pdf file name
 local_pdf_name = determine_pdf_name(paper_data)
 
 # write .org file
-msg(logfile,"Writing to" + org_dir + org_file_name)
-orgfile.write(org_fmt.output(paper_data, local_pdf_name))
+msg("Writing to" + org_file_name)
+org_fmt.output(paper_data, local_pdf_name, org_file_name)
 
 # download pdf
 download_pdf(paper_data['pdf_link'], local_pdf_name)
@@ -185,11 +179,6 @@ download_pdf(paper_data['pdf_link'], local_pdf_name)
 open_reader(local_pdf_name)
 
 # apply pdf filters after opening reader because it may take a long time
-apply_pdf_filters(local_pdf_name, logfile)
+apply_pdf_filters(local_pdf_name)
 
-code_exit(logfile, 
-          'HepOrg: Generated '+local_pdf_name+' and '+org_file_name, 0)
-
-# clean up (log file is closed inside code_exit)
-orgfile.close()
-htmfile.close()
+code_exit('HepOrg: Generated '+local_pdf_name+' and '+org_file_name, 0)

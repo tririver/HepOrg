@@ -17,36 +17,29 @@
 # along with HepOrg.  If not, see <http://www.gnu.org/licenses/>.
 
 
-def file_name(paper_data):
-    if paper_data['pdf_link'] == 'not found':
-        return ''
-    fn = ''
-    for author in paper_data['authors']:
-        fn = fn + author[0] + '_'
-    arxiv_num_fmt = "arXiv_" \
-        + paper_data['arxiv_num'].replace('.','_').replace('/','_') \
-        + "_v" + paper_data['version']
-    fn = fn + arxiv_num_fmt + '.pdf'
-    return fn
 
-
-def output(paper_data, local_pdf_name):
+def output(paper_data, local_pdf_name, org_dir_file_name):
 
     # determine what to write in the first link area
-    if paper_data['abs_link'] == 'not_found':
+    if paper_data['abs_link'] == 'not found':
         num = paper_data['journal']
         link = paper_data['inspire_link']
     else:
         num = paper_data['arxiv_num']
         link = paper_data['abs_link']
 
+    if local_pdf_name != '':
+        pdf_link = local_pdf_name
+    else:
+        pdf_link = paper_data['journal_link']
+
     # write author list in a more readable form
     authors = ''
     for name in paper_data['authors']:
         authors = authors + name[1] + ' ' + name[0] + ', '
     authors = authors[:-2]
-    
-    return r'''**[[{0}][{1}]]  [[{2}][{3}]]
+
+    org_append_str = r'''**[[{0}][{1}]]  [[{2}][{3}]]
 :PROPERTIES:
 TITLE: {4}
 
@@ -59,10 +52,14 @@ VERSION: v{7}, {8} (first version: {9})
 
 JOURNAL: {10}
 :END:
-'''.format(link, num, local_pdf_name,
+'''.format(link, num, pdf_link,
            paper_data['title'][:70-len(num)],
            paper_data['title'], authors, paper_data['abstract'],
            paper_data['version'][:2], 
            paper_data['ver_date'], paper_data['submit_date'],
            paper_data['journal']
-           )
+           ).replace('not found', '')
+    orgfile = open(org_dir_file_name, 'a')
+    orgfile.write(org_append_str)
+    orgfile.close()
+    return
