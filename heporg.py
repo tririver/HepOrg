@@ -72,6 +72,11 @@ def download_pdf(file_link, local_pdf_name):
     if refconf.download != 'T' or local_pdf_name == '':
         code_exit('HepOrg: written to '+org_file_name+', no pdf generated.', 0)
     msg("Downloading " + local_pdf_name)
+
+    #eventually I decide to use lynx: not cross platform, but behavies better
+    # eval_str = 'lynx -dump "{}" > "{}"'.format(file_link, local_pdf_name)
+    # subprocess.call(eval_str)
+
     f = urllib.request.urlopen(file_link)    
     localFile = open(local_pdf_name, 'wb')
     localFile.write(f.read())

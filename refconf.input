@@ -1,0 +1,18 @@
+import parsers
+import pdf_filters
+
+download = 'T'
+
+open_reader = 'T'
+pdf_reader = '/usr/bin/xdg-open'
+pdf_reader_arg = ''
+
+parser_list = [('arxiv', parsers.arxiv), 
+               ('inspire', parsers.inspire)]
+
+pdf_filter_list = []
+# if you want to get pdf with cropped boundary, use the following filter
+#pdf_filter_list = [('pdfcrop', pdf_filters.pdfcrop)]
+
+# If notification cause any problems, turn it off (set to 'F')
+notify = 'T'

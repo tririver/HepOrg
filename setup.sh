@@ -9,16 +9,9 @@ READERARG=
 
 mkdir -p $LOCALDIR/pdf
 mkdir -p $LOCALDIR/org
-echo "dir_prefix = '$LOCALDIR/'" > refconf.py
-echo "" >> refconf.py
-echo "download = 'T'" >> refconf.py
-echo "" >> refconf.py
-echo "open_reader = 'T'" >> refconf.py
-echo "pdf_reader = '$READER'" >> refconf.py
-echo "pdf_reader_arg = '$READERARG'" >> refconf.py
-echo "" >> refconf.py
-echo "# If you want desktop notificatin, set notify to 'T'" >> refconf.py
-echo "notify = 'F'" >> refconf.py
+
+cat refconf.input > refconf.py
+echo "dir_prefix = '$LOCALDIR/'" >> refconf.py
 
 # run a test
 echo "Setup finished, running a test..."

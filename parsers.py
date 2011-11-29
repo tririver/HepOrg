@@ -37,7 +37,7 @@ def arxiv(page):
     title = get(r'<title>\[.+?] (.+?)</title>', 
                       page, re_option=re.DOTALL)
     if title == 'not found':
-        return {'status':'try-arxiv failed -- title not found'}
+        return {'status':'try arxiv failed -- title not found'}
 
     arxiv_num = get(r'<title>\[(.+?)] .+?</title>', 
                       page, re_option=re.DOTALL)
@@ -45,19 +45,19 @@ def arxiv(page):
     abstract = get(r'<blockquote class="abstract">\n<span class="descriptor">Abstract:</span> (.+)\n</blockquote>', 
                       page, re_option=re.DOTALL)    
     if abstract == 'not found':
-        return {'status':'try-arxiv failed -- abstract not found'}
+        return {'status':'try arxiv failed -- abstract not found'}
 
     abs_link = get(r'dc:identifier="(.+?)"', page)
 
     pdf_link = get(r'citation_pdf_url" content="(.+?)" />', page)
     if pdf_link == 'not found':
-        return {'status':'try-arxiv failed -- pdf_link not found'}
+        return {'status':'try arxiv failed -- pdf_link not found'}
 
     version = get(r'<b>\[v(.+?)]</b>', page)
 
     journal = get(r'td class="tablecell jref">(.+?)</td>', page)
 
-    journal_link = get(r'(http://dx.doi.org/.+?)">', page)
+    journal_link = get(r'(http://dx.doi.org/.+?)"', page)
 
     inspire_link = get('Citations</h3><ul><li><a href="(.+?)">INSPIRE',
                        page)
@@ -88,7 +88,7 @@ def inspire(page):
 
     title = get(r'<title>(.+?) - HEP</title>', page)
     if title == 'not found':
-        return {'status':'try-inspire failed -- title not found'}
+        return {'status':'try inspire failed -- title not found'}
 
     arxiv_num = get(r'e-Print: <b>arXiv:(.+?) \[.+?]</b>', page)
 
@@ -108,7 +108,7 @@ def inspire(page):
 
     journal = get(r'pp.\n<br /><br /><strong>(.+?)<', page)
 
-    journal_link = get(r'(http://dx.doi.org/.+?)">', page)
+    journal_link = get(r'(http://dx.doi.org/.+?)"', page)
 
     inspire_link = get(r'Information  </a></li><li class=""><a href="(.+?)">References', page)
 
@@ -125,7 +125,7 @@ def inspire(page):
     authors = get(r'<a class="authorlink" href=".+?">(.+?)</a>', page, 
                   re_option=re.DOTALL, fmt=author_fmt)
     if authors == 'not found':
-        return {'status':'try-inspire failed -- authors not found'}
+        return {'status':'try inspire failed -- authors not found'}
 
     return {'page':'inspire', 'arxiv_num':arxiv_num, 'title':title, 
             'authors':authors, 'abstract':abstract, 'abs_link':abs_link,
